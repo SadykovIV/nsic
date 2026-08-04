@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a reproducible NSIC problem without sharing keys or game data
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Never attach prod.keys, tickets, certificates or copyrighted game files.
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: NSIC version, nscb_rust version and macOS version
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Stage
+      options: [File scan, XCI build, Verification, Cancellation, Settings, First launch]
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Sanitized input description
+      description: Content types, versions and sanitized TITLE IDs or filenames
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Sanitized log excerpt
+      render: text

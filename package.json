@@ -1,0 +1,36 @@
+{
+  "name": "nintendo-switch-image-converter",
+  "version": "0.1.0",
+  "description": "macOS ARM64 desktop app for building verified XCI images",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "dev:web": "vite",
+    "build:web": "vite build",
+    "build": "tauri build",
+    "build:arm64": "tauri build --target aarch64-apple-darwin",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "tauri": "tauri"
+  },
+  "keywords": ["nintendo-switch", "xci", "nsp", "nsz", "macos", "arm64", "tauri"],
+  "author": "Ildar Sadykov",
+  "license": "ISC",
+  "dependencies": {
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-dialog": "^2.6.0",
+    "@tauri-apps/plugin-opener": "^2.5.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.10.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.1.0"
+  }
+}
