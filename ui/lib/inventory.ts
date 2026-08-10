@@ -27,6 +27,12 @@ export interface InventoryAnalysis {
     blockingError: string | null;
 }
 
+// These It Takes Two packages are alternative entitlements, not cumulative DLC.
+// Keep the rule explicit so NSIC never silently drops a user-selected package.
+const KNOWN_CONFLICTING_DLC_SETS = [
+    ['010092A0172E5001', '010092A0172E5002'],
+] as const;
+
 export function baseTitleId(titleId: string, kind?: ContentKind): string {
     const normalized = titleId.toUpperCase();
     if (!/^[0-9A-F]{16}$/.test(normalized)) return normalized;
@@ -64,6 +70,14 @@ export function analyzeInventory(files: SelectedSwitchFile[]): InventoryAnalysis
     if (baseTitleIds.length > 1) warnings.push('multiple_titles');
     if (unknownCount > 0) warnings.push('unknown_content');
     if (updateCount > 1) warnings.push('multiple_updates');
+    const selectedTitleIds = new Set(
+        selected
+            .map((file) => file.titleId?.toUpperCase())
+            .filter((titleId): titleId is string => Boolean(titleId)),
+    );
+    if (KNOWN_CONFLICTING_DLC_SETS.some((set) => set.every((titleId) => selectedTitleIds.has(titleId)))) {
+        warnings.push('conflicting_entitlements');
+    }
 
     return {
         selectedCount: selected.length,

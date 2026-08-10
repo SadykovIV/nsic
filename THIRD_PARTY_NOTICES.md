@@ -18,6 +18,22 @@ runtime backend. It is not copied into this repository or NSIC release artifacts
 As of 2026-08-04 the repository does not expose an explicit license file; no
 redistribution permission is assumed.
 
+## hactool
+
+[SciresM/hactool](https://github.com/SciresM/hactool) is an optional external
+tool used to extract and verify the selected DLC PublicData RomFS. It is ISC
+licensed and is not bundled with NSIC.
+
+## hacPack
+
+[DarkUnixOs/hacPack](https://github.com/DarkUnixOs/hacPack) is an optional
+external GPL-2.0 tool used to rebuild modified DLC PublicData/Meta NCA and NSP
+content. NSIC does not copy, link, or redistribute hacPack binaries; users
+import their own binary.
+`patches/hacpack-nsic.patch` contains modification instructions for hacPack and
+is provided under GPL-2.0. A hacPack build produced with that patch remains
+GPL-2.0 and is not part of NSIC release artifacts.
+
 ## NSC_Builder
 
 [julesontheroad/NSC_BUILDER](https://github.com/julesontheroad/NSC_BUILDER)

@@ -158,6 +158,15 @@ input::placeholder { color: #6f7d91; }
 
 .storage-card h2, .options-card > h2 { margin-bottom: 12px; }
 .storage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.patch-hint, .temp-explanation { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.temp-explanation { margin-top: 9px; padding-left: 9px; border-left: 2px solid rgba(111, 136, 255, .45); }
+.patch-summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; margin-top: 10px; padding: 10px 11px; border: 1px solid rgba(99, 211, 155, .25); border-radius: 8px; background: rgba(99, 211, 155, .06); }
+.patch-summary code { overflow: hidden; color: #bfcbe0; font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 10px; white-space: nowrap; text-overflow: ellipsis; }
+.patch-summary strong { color: var(--success); font-size: 10.5px; white-space: nowrap; }
+.carrier-picker { display: grid; grid-template-columns: 190px minmax(0, 1fr); align-items: center; gap: 12px; margin-top: 10px; }
+.carrier-picker > span { color: #aeb9c9; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .45px; }
+.carrier-picker select { width: 100%; min-width: 0; }
+.patch-card .notice { margin-top: 9px; }
 .storage-grid > label { min-width: 0; }
 .storage-grid > label > span, .advanced-grid label { display: block; margin-bottom: 6px; color: #aeb9c9; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .45px; }
 .path-row { display: flex; gap: 8px; min-width: 0; }

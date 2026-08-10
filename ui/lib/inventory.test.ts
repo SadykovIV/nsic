@@ -42,6 +42,23 @@ describe('inventory analysis', () => {
         expect(analyzeInventory([file(), file({ path: '/Games/other.nsp', titleId: '0100999999999000' })]).warnings)
             .toContain('multiple_titles');
     });
+
+    it('blocks the mutually exclusive It Takes Two Full Game and Friends Pass entitlements', () => {
+        const result = analyzeInventory([
+            file({ titleId: '010092A0172E4000' }),
+            file({ path: '/Games/full-game.nsp', kind: 'dlc', titleId: '010092A0172E5001' }),
+            file({ path: '/Games/friends-pass.nsp', kind: 'dlc', titleId: '010092A0172E5002' }),
+        ]);
+        expect(result.warnings).toContain('conflicting_entitlements');
+    });
+
+    it('allows the verified It Takes Two Full Game entitlement by itself', () => {
+        const result = analyzeInventory([
+            file({ titleId: '010092A0172E4000' }),
+            file({ path: '/Games/full-game.nsp', kind: 'dlc', titleId: '010092A0172E5001' }),
+        ]);
+        expect(result.warnings).not.toContain('conflicting_entitlements');
+    });
 });
 
 describe('inventory helpers', () => {

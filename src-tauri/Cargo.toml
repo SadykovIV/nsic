@@ -1,6 +1,6 @@
 [package]
 name = "nsic"
-version = "0.1.0"
+version = "0.2.0"
 description = "Nintendo Switch Image Converter for macOS ARM64"
 authors = ["Ildar Sadykov"]
 edition = "2021"
@@ -19,3 +19,6 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 reqwest = { version = "0.12", features = ["blocking"] }
+
+[dev-dependencies]
+tauri = { version = "2", features = ["test"] }

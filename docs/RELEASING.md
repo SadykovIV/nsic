@@ -7,7 +7,13 @@ Release artifacts contain only the NSIC application. They must not contain:
 - `prod.keys`, `keys.txt`, `title.keys` or other cryptographic material;
 - NSP, NSZ, XCI, XCZ, NCA or NCZ files;
 - `nscb_rust` binaries until the upstream project publishes a compatible license
-  or grants explicit redistribution permission.
+  or grants explicit redistribution permission;
+- `hactool` or `hacPack` binaries. They remain manually imported external tools;
+  in particular, hacPack is GPL-2.0 and is not distributed in NSIC artifacts.
+
+The textual `patches/hacpack-nsic.patch` source patch may remain in the source
+archive under GPL-2.0, but the patched hacPack executable must never enter the
+application bundle or release ZIP.
 
 ## Local build
 

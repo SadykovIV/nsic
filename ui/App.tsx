@@ -32,8 +32,21 @@ const TEXT = {
         multipleTitles: 'В наборе обнаружено несколько базовых TITLE ID. Собирайте каждую игру отдельно.',
         unknownContent: 'Тип части некоторых файлов не определён по имени. Проверьте набор вручную.',
         multipleUpdates: 'Выбрано несколько обновлений. Backend определит применимое, но лучше оставить только самое новое.',
+        conflictingEntitlements: 'Full Game DLC 010092A0172E5001 и Friends Pass 010092A0172E5002 — взаимоисключающие права It Takes Two. Для полной игры оставьте только 010092A0172E5001.',
+        patchTitle: 'Встраиваемая модификация (необязательно)', patchChoose: 'Выбрать папку русификатора…', patchRemove: 'Убрать',
+        patchHint: 'Безопасный режим для Unreal Engine: PAK/UTOC/UCAS из <TITLE ID>/romfs встраиваются в выбранный DLC-плагин. Base и update не пересобираются.',
+        patchSummary: 'TITLE ID {titleId} · файлов: {count} · {size}', patchMismatch: 'TITLE ID модификации не совпадает с базовой игрой.',
+        carrierLabel: 'DLC-контейнер модификации', carrierChoose: 'Выберите совместимый DLC…',
+        carrierMissing: 'Для модификации выберите DLC-контейнер. Он должен содержать Unreal-плагин (.uplugin и штатный .pak).',
+        patchToolsMissing: 'Для встраивания нужны hactool и hacPack. Импортируйте их в настройках.',
+        patchToolsTitle: 'Инструменты встраивания', patchToolsBody: 'hactool извлекает выбранный DLC, hacPack пересобирает только его PublicData и Meta NCA. Base, update и остальные DLC сохраняются исходными. Утилиты не входят в релиз NSIC.',
+        importHactool: 'Импортировать hactool…', importHacpack: 'Импортировать hacPack…',
+        tempUnused: 'Для выбранных NSP/XCI backend работает потоково; временная папка может остаться пустой.',
+        tempCompressed: 'NSZ/XCZ будут распакованы через временную папку.',
+        tempPatch: 'Модификация включена: временная папка будет использована для распаковки и пересборки выбранного DLC-контейнера.',
         optionsTitle: '4. Параметры сборки', noDelta: 'Исключить delta-фрагменты', noDeltaHelp: 'Обычно они не нужны в объединённом XCI и увеличивают размер.',
-        verify: 'Проверить XCI после сборки', verifyHelp: 'Проверка расшифровки и подписей. Она не гарантирует запуск конкретной игры в MeloNX.',
+        verify: 'Проверить XCI после сборки', verifyHelp: 'Проверка расшифровки и исходных подписей. Она не гарантирует запуск конкретной игры в MeloNX.',
+        verifyPatchedHelp: 'Обязательная проверка IVFC PublicData выполняется внутри сборки. Общая проверка подписей неприменима: выбранный DLC намеренно модифицирован.',
         firmwareInfo: 'Показать сведения о требуемой прошивке', advanced: 'Расширенные параметры прошивки',
         rsvCap: 'Ограничение RSV', keyPatch: 'Поколение ключа', optional: 'Не изменять',
         firmwareWarning: 'Меняйте эти значения только при точном понимании исходного key generation. Неверный параметр может сделать образ неработоспособным.',
@@ -55,6 +68,7 @@ const TEXT = {
         setupError: 'Не удалось обновить настройку: {error}', downloadProgress: 'Загрузка backend…', downloadDone: 'Backend установлен.',
         aboutTitle: 'Nintendo Switch Image Converter', aboutBody: 'NSIC — интерфейс для локальной сборки base, update и DLC в единый XCI с опциональной проверкой результата.',
         designNote: 'Интерфейс следует логике PS4 FFPFSC: источник → состав → параметры → проверяемый результат.',
+        buildIdentity: 'Safe DLC',
         legalTitle: 'Границы проекта', legalBody: 'NSIC не скачивает игры или ключи и не включает их в дистрибутив. Используйте только собственные законно полученные дампы и ключи. Совместимость с MeloNX не гарантируется.',
         sourcesTitle: 'Технологическая основа', sourceNscb: 'nscb_rust — внешний backend', sourceBuilder: 'NSC_Builder — исходная концепция workflow', sourceNsz: 'NSZ — формат и инструменты сжатия',
         unsupportedDrop: 'В выбранном источнике нет файлов NSP, NSZ, XCI или XCZ.',
@@ -74,8 +88,21 @@ const TEXT = {
         multipleTitles: 'More than one base TITLE ID was found. Build each game separately.',
         unknownContent: 'Some content types cannot be inferred from filenames. Review the set manually.',
         multipleUpdates: 'Multiple updates are selected. The backend will choose applicable content, but keeping only the newest is safer.',
+        conflictingEntitlements: 'Full Game DLC 010092A0172E5001 and Friends Pass 010092A0172E5002 are mutually exclusive It Takes Two entitlements. Keep only 010092A0172E5001 for the full game.',
+        patchTitle: 'Embedded modification (optional)', patchChoose: 'Choose localization folder…', patchRemove: 'Remove',
+        patchHint: 'Safe Unreal Engine mode: PAK/UTOC/UCAS assets from <TITLE ID>/romfs are embedded into a selected DLC plugin. Base and update are not rebuilt.',
+        patchSummary: 'TITLE ID {titleId} · files: {count} · {size}', patchMismatch: 'The modification TITLE ID does not match the base game.',
+        carrierLabel: 'Modification DLC carrier', carrierChoose: 'Choose a compatible DLC…',
+        carrierMissing: 'Select a DLC carrier for the modification. It must contain an Unreal plugin (.uplugin plus an original .pak).',
+        patchToolsMissing: 'Embedding requires hactool and hacPack. Import them in Settings.',
+        patchToolsTitle: 'Embedding tools', patchToolsBody: 'hactool extracts the selected DLC and hacPack rebuilds only its PublicData and Meta NCAs. Base, update and other DLC stay original. Neither tool is bundled with NSIC.',
+        importHactool: 'Import hactool…', importHacpack: 'Import hacPack…',
+        tempUnused: 'The selected NSP/XCI files are streamed; the temporary folder may remain empty.',
+        tempCompressed: 'NSZ/XCZ inputs will be decompressed through the temporary folder.',
+        tempPatch: 'A modification is enabled: the temporary folder will hold the extracted and rebuilt DLC carrier.',
         optionsTitle: '4. Build options', noDelta: 'Exclude delta fragments', noDeltaHelp: 'They are normally unnecessary in a merged XCI and increase its size.',
-        verify: 'Verify XCI after building', verifyHelp: 'Checks decryption and signatures. It cannot guarantee that a particular game launches in MeloNX.',
+        verify: 'Verify XCI after building', verifyHelp: 'Checks decryption and original signatures. It cannot guarantee that a particular game launches in MeloNX.',
+        verifyPatchedHelp: 'Mandatory PublicData IVFC verification runs inside the build. General signature verification is not applicable because the selected DLC is intentionally modified.',
         firmwareInfo: 'Show required firmware information', advanced: 'Advanced firmware controls',
         rsvCap: 'RSV cap', keyPatch: 'Key generation', optional: 'Do not change',
         firmwareWarning: 'Only set these values when you know the source key generation. A wrong value can make the image unusable.',
@@ -97,6 +124,7 @@ const TEXT = {
         setupError: 'Could not update setting: {error}', downloadProgress: 'Downloading backend…', downloadDone: 'Backend installed.',
         aboutTitle: 'Nintendo Switch Image Converter', aboutBody: 'NSIC is a local interface for building base, update and DLC content into one XCI with optional verification.',
         designNote: 'The UI follows PS4 FFPFSC: source → contents → options → verifiable result.',
+        buildIdentity: 'Safe DLC',
         legalTitle: 'Project boundaries', legalBody: 'NSIC does not download games or keys and never bundles them. Use only your own legally obtained dumps and keys. MeloNX compatibility is not guaranteed.',
         sourcesTitle: 'Technical foundation', sourceNscb: 'nscb_rust — external backend', sourceBuilder: 'NSC_Builder — original workflow concept', sourceNsz: 'NSZ — compression format and tools',
         unsupportedDrop: 'The selected source contains no NSP, NSZ, XCI or XCZ files.',
@@ -130,12 +158,15 @@ function interpolate(value: string, fields: Record<string, string | number>): st
 export default function App() {
     const [language, setLanguage] = useState<Language>('ru');
     const [view, setView] = useState<View>('builder');
-    const [version, setVersion] = useState('0.1');
+    const [version, setVersion] = useState('0.2');
     const [files, setFiles] = useState<SelectedSwitchFile[]>([]);
     const [outputDir, setOutputDir] = useState('');
     const [tempDir, setTempDir] = useState('');
     const [keysReady, setKeysReady] = useState(false);
     const [backendReady, setBackendReady] = useState(false);
+    const [patchTools, setPatchTools] = useState<api.PatchToolStatus>({ hactool: false, hacpack: false });
+    const [patch, setPatch] = useState<api.PatchInspection | null>(null);
+    const [carrierDlcPath, setCarrierDlcPath] = useState('');
     const [backendVersion, setBackendVersion] = useState('');
     const [toolsDir, setToolsDir] = useState('');
     const [release, setRelease] = useState<api.BackendRelease | null>(null);
@@ -152,6 +183,8 @@ export default function App() {
     const [runStatus, setRunStatus] = useState<RunStatus>('idle');
     const [phase, setPhase] = useState('');
     const [progress, setProgress] = useState(0);
+    const [backendEta, setBackendEta] = useState<number | null>(null);
+    const [backendSpeed, setBackendSpeed] = useState<string | null>(null);
     const [logs, setLogs] = useState<string[]>([]);
     const [resultPath, setResultPath] = useState('');
     const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -161,11 +194,12 @@ export default function App() {
     const t = useCallback((key: TextKey) => TEXT[language][key], [language]);
 
     const refreshTools = useCallback(async () => {
-        const [keys, backend, installedVersion, directory] = await Promise.all([
-            api.hasKeys(), api.hasBackend(), api.getBackendVersion(), api.getToolsDirectory().catch(() => ''),
+        const [keys, backend, installedVersion, directory, patchStatus] = await Promise.all([
+            api.hasKeys(), api.hasBackend(), api.getBackendVersion(), api.getToolsDirectory().catch(() => ''), api.getPatchToolStatus(),
         ]);
         setKeysReady(keys);
         setBackendReady(backend);
+        setPatchTools(patchStatus);
         setBackendVersion(installedVersion);
         setToolsDir(directory);
     }, []);
@@ -194,12 +228,12 @@ export default function App() {
 
     useEffect(() => {
         void Promise.all([
-            api.getSetting('language'), api.getSetting('outputDir'), api.getSetting('tempDir'), getVersion().catch(() => '0.1'),
+            api.getSetting('language'), api.getSetting('outputDir'), api.getSetting('tempDir'), getVersion().catch(() => '0.2'),
         ]).then(([savedLanguage, savedOutput, savedTemp, appVersion]) => {
             if (savedLanguage === 'en' || savedLanguage === 'ru') setLanguage(savedLanguage);
             setOutputDir(savedOutput);
             setTempDir(savedTemp);
-            setVersion(appVersion === '0.1.0' ? '0.1' : appVersion);
+            setVersion(appVersion === '0.2.0' ? '0.2' : appVersion);
         });
         void runner.init();
         void refreshTools();
@@ -211,8 +245,10 @@ export default function App() {
         const unsubscribeOutput = runner.on('output', ({ op, line }) => {
             setLogs((current) => [...current.slice(-999), `[${op}] ${line}`]);
         });
-        const unsubscribeProgress = runner.on('progress', ({ percent, message }) => {
+        const unsubscribeProgress = runner.on('progress', ({ percent, message, etaSeconds, speed }) => {
             setProgress(percent);
+            setBackendEta(etaSeconds);
+            setBackendSpeed(speed);
             if (message) setPhase(message);
         });
         const unsubscribeError = runner.on('error', ({ message }) => {
@@ -250,10 +286,29 @@ export default function App() {
     }, [outputDir]);
 
     const analysis = useMemo(() => analyzeInventory(files), [files]);
+    const selectedDlcs = useMemo(
+        () => files.filter((file) => file.selected && file.kind === 'dlc'),
+        [files],
+    );
+
+    useEffect(() => {
+        if (!patch) {
+            if (carrierDlcPath) setCarrierDlcPath('');
+            return;
+        }
+        if (selectedDlcs.some((file) => file.path === carrierDlcPath)) return;
+        setCarrierDlcPath(selectedDlcs.length === 1 ? selectedDlcs[0].path : '');
+    }, [patch, selectedDlcs, carrierDlcPath]);
+
     const elapsed = startedAt ? Math.max(0, Math.floor((now - startedAt) / 1000)) : lastElapsed;
-    const eta = running && progress > 1 && progress < 100 ? Math.max(0, Math.round(elapsed * (100 - progress) / progress)) : null;
     const hasMixedTitles = analysis.warnings.includes('multiple_titles');
-    const canBuild = !running && !analysis.blockingError && !hasMixedTitles && Boolean(outputDir) && keysReady && backendReady;
+    const hasConflictingEntitlements = analysis.warnings.includes('conflicting_entitlements');
+    const patchMatches = !patch || analysis.baseTitleIds.includes(patch.titleId);
+    const patchToolsReady = patchTools.hactool && patchTools.hacpack;
+    const carrierReady = !patch || Boolean(carrierDlcPath);
+    const canBuild = !running && !analysis.blockingError && !hasMixedTitles && !hasConflictingEntitlements && patchMatches && carrierReady && Boolean(outputDir) && keysReady && backendReady && (!patch || patchToolsReady);
+    const selectedCompressed = files.some((file) => file.selected && (file.extension === 'nsz' || file.extension === 'xcz'));
+    const tempExplanation = patch ? t('tempPatch') : selectedCompressed ? t('tempCompressed') : t('tempUnused');
 
     const changeLanguage = (next: Language) => {
         setLanguage(next);
@@ -275,13 +330,28 @@ export default function App() {
         setTempDir(directory);
         await api.saveSetting('tempDir', directory);
     };
+    const choosePatch = async () => {
+        try {
+            const selected = await api.selectAndInspectPatch(t('patchTitle'));
+            if (selected) { setPatch(selected); setSetupMessage(selected.warnings.join(' · ')); }
+        } catch (error) { setSetupMessage(String(error)); }
+    };
+    const importPatchTool = async (kind: 'hactool' | 'hacpack') => {
+        const result = await api.importPatchTool(kind);
+        if (result.error) setSetupMessage(interpolate(t('setupError'), { error: result.error }));
+        await refreshTools();
+    };
 
     const resetRun = () => {
         setFiles([]);
+        setPatch(null);
+        setCarrierDlcPath('');
         setLogs([]);
         setProgress(0);
         setRunStatus('idle');
         setPhase('');
+        setBackendEta(null);
+        setBackendSpeed(null);
         setResultPath('');
         setLastElapsed(0);
         setStartedAt(null);
@@ -297,19 +367,33 @@ export default function App() {
         setRunning(true);
         setRunStatus('running');
         setProgress(0);
+        setBackendEta(null);
+        setBackendSpeed(null);
         setPhase(t('buildStarting'));
         setLogs([]);
         setResultPath('');
 
         const before = await api.inspectPaths([outputDir], false).catch(() => []);
-        setPhase(t('mergeStage'));
-        const mergeCode = await runner.run('merge', selectedFiles, {
-            output: outputDir,
-            nodelta: noDelta,
-            showFirmware,
-            rsvcap: rsvCap.trim() || undefined,
-            keypatch: keyPatch.trim() || undefined,
-        });
+        let mergeCode: number;
+        if (patch) {
+            const selected = files.filter((file) => file.selected);
+            const base = selected.find((file) => file.kind === 'base');
+            const updates = selected.filter((file) => file.kind === 'update').sort((a, b) => (b.version ?? 0) - (a.version ?? 0));
+            if (!base) { setRunStatus('error'); setPhase(t('noBase')); finishTiming(timestamp); return; }
+            mergeCode = await runner.runPatch({
+                titleId: patch.titleId, basePath: base.path, updatePath: updates[0]?.path ?? null,
+                dlcPaths: selected.filter((file) => file.kind === 'dlc').map((file) => file.path),
+                carrierDlcPath, patchPath: patch.root,
+                outputDir, tempDir: tempDir || null, nodelta: noDelta, showFirmware,
+                rsvcap: rsvCap.trim() || null, keypatch: keyPatch.trim() || null,
+            });
+        } else {
+            setPhase(t('mergeStage'));
+            mergeCode = await runner.run('merge', selectedFiles, {
+                output: outputDir, nodelta: noDelta, showFirmware,
+                rsvcap: rsvCap.trim() || undefined, keypatch: keyPatch.trim() || undefined,
+            });
+        }
 
         if (mergeCode === 130) {
             setRunStatus('cancelled');
@@ -325,13 +409,19 @@ export default function App() {
         }
 
         const after = await api.inspectPaths([outputDir], false).catch(() => []);
-        const built = findBuiltXci(before, after, timestamp);
+        const exactResultPath = runner.getResultPath();
+        const exactResult = exactResultPath
+            ? (await api.inspectPaths([exactResultPath], false).catch(() => []))[0] ?? null
+            : null;
+        const built = exactResult ?? findBuiltXci(before, after, timestamp);
         if (built) setResultPath(built.path);
         if (!built) setLogs((current) => [...current, `WARNING: ${t('resultNotFound')}`]);
 
-        let verified = false;
-        if (verifyResult && built) {
+        let verified = Boolean(patch && built);
+        if (verifyResult && built && !patch) {
             setProgress(0);
+            setBackendEta(null);
+            setBackendSpeed(null);
             setPhase(t('verifyStage'));
             const verifyCode = await runner.run('verify', [built.path], { vertype: 'lv2' });
             if (verifyCode === 130) {
@@ -434,6 +524,11 @@ export default function App() {
                 </div>
             </section>
             <section className="card settings-card">
+                <div className="settings-icon"><Icon name="tool" size={22} /></div>
+                <div className="settings-copy"><h3>{t('patchToolsTitle')}</h3><p>{t('patchToolsBody')}</p><span className={`status-pill ${patchToolsReady ? 'ok' : 'missing'}`}>hactool: {patchTools.hactool ? 'OK' : '—'} · hacPack: {patchTools.hacpack ? 'OK' : '—'}</span></div>
+                <div className="settings-actions"><button className="button secondary" onClick={() => importPatchTool('hactool')}>{t('importHactool')}</button><button className="button secondary" onClick={() => importPatchTool('hacpack')}>{t('importHacpack')}</button></div>
+            </section>
+            <section className="card settings-card">
                 <div className="settings-icon"><Icon name="folder" size={22} /></div>
                 <div className="settings-copy"><h3>{t('tempTitle')}</h3><p>{t('tempBody')}</p><code className="path-box">{tempDir || t('systemDefault')}</code></div>
                 <div className="settings-actions"><button className="button secondary" onClick={chooseTemp}>{t('choose')}</button>{tempDir && <button className="button quiet" onClick={() => { setTempDir(''); void api.saveSetting('tempDir', ''); }}>{t('reset')}</button>}</div>
@@ -448,7 +543,7 @@ export default function App() {
 
     if (view === 'about') {
         return <div className="app-shell">{header}<main className="about-page">
-            <section className="about-hero card"><div className="about-logo">NS</div><h2>{t('aboutTitle')}</h2><div className="version">v{version} · macOS ARM64</div><p>{t('aboutBody')}</p><p>{t('designNote')}</p></section>
+            <section className="about-hero card"><div className="about-logo">NS</div><h2>{t('aboutTitle')}</h2><div className="version">v{version} · macOS ARM64 · {t('buildIdentity')}</div><p>{t('aboutBody')}</p><p>{t('designNote')}</p></section>
             <section className="card about-section"><h3>{t('legalTitle')}</h3><p>{t('legalBody')}</p></section>
             <section className="card about-section"><h3>{t('sourcesTitle')}</h3><div className="source-links">
                 <button onClick={() => api.openExternal('https://github.com/cxfcxf/nscb_rust')}>{t('sourceNscb')}</button>
@@ -459,7 +554,7 @@ export default function App() {
     }
 
     const warningMessages = analysis.warnings.map((warning) => ({
-        multiple_titles: t('multipleTitles'), unknown_content: t('unknownContent'), multiple_updates: t('multipleUpdates'),
+        multiple_titles: t('multipleTitles'), unknown_content: t('unknownContent'), multiple_updates: t('multipleUpdates'), conflicting_entitlements: t('conflictingEntitlements'),
     }[warning]));
     const blockingMessage = analysis.blockingError === 'no_base' ? t('noBase') : analysis.blockingError === 'no_files' ? t('noFiles') : '';
 
@@ -477,9 +572,20 @@ export default function App() {
             </button>
         </section>
 
+        <section className="card source-card patch-card">
+            <div className="section-heading"><h2>{t('patchTitle')}</h2><div className="section-actions"><button className="button secondary" disabled={running} onClick={choosePatch}><Icon name="folder" />{t('patchChoose')}</button>{patch && <button className="button quiet" disabled={running} onClick={() => setPatch(null)}>{t('patchRemove')}</button>}</div></div>
+            <p className="patch-hint">{t('patchHint')}</p>
+            {patch && <div className="patch-summary"><code>{patch.contentRoot}</code><strong>{interpolate(t('patchSummary'), { titleId: patch.titleId, count: patch.fileCount, size: formatBytes(patch.totalSize) })}</strong></div>}
+            {patch && <label className="carrier-picker"><span>{t('carrierLabel')}</span><select value={carrierDlcPath} disabled={running} onChange={(event) => setCarrierDlcPath(event.target.value)}><option value="">{t('carrierChoose')}</option>{selectedDlcs.map((file) => <option value={file.path} key={file.path}>{file.name} · {file.titleId || '—'}</option>)}</select></label>}
+            {patch && !patchMatches && <div className="notice error"><Icon name="warning" />{t('patchMismatch')}</div>}
+            {patch && !carrierReady && <div className="notice warning"><Icon name="warning" />{t('carrierMissing')}</div>}
+            {patch && !patchToolsReady && <div className="notice warning"><Icon name="warning" />{t('patchToolsMissing')}</div>}
+        </section>
+
         <section className="card storage-card">
             <h2>{t('storageTitle')}</h2>
             <div className="storage-grid"><label><span>{t('outputLabel')}</span><div className="path-row"><code>{outputDir || '—'}</code><button className="button secondary" onClick={chooseOutput}>{t('choose')}</button></div></label><label><span>{t('tempLabel')}</span><div className="path-row"><code>{tempDir || t('systemDefault')}</code><button className="button secondary" onClick={chooseTemp}>{t('choose')}</button></div></label></div>
+            <p className="temp-explanation">{tempExplanation}</p>
         </section>
 
         <section className="card inventory-card">
@@ -499,7 +605,7 @@ export default function App() {
 
         <section className="card options-card">
             <h2>{t('optionsTitle')}</h2>
-            <div className="option-grid"><Toggle checked={noDelta} onChange={setNoDelta} title={t('noDelta')} help={t('noDeltaHelp')} disabled={running} /><Toggle checked={verifyResult} onChange={setVerifyResult} title={t('verify')} help={t('verifyHelp')} disabled={running} /><Toggle checked={showFirmware} onChange={setShowFirmware} title={t('firmwareInfo')} help="--pv" disabled={running} /></div>
+            <div className="option-grid"><Toggle checked={noDelta} onChange={setNoDelta} title={t('noDelta')} help={t('noDeltaHelp')} disabled={running} /><Toggle checked={patch ? true : verifyResult} onChange={setVerifyResult} title={t('verify')} help={patch ? t('verifyPatchedHelp') : t('verifyHelp')} disabled={running || Boolean(patch)} /><Toggle checked={showFirmware} onChange={setShowFirmware} title={t('firmwareInfo')} help="--pv" disabled={running} /></div>
             <details className="advanced-options"><summary>{t('advanced')}</summary><div className="firmware-warning"><Icon name="warning" />{t('firmwareWarning')}</div><div className="advanced-grid"><label>{t('rsvCap')}<input value={rsvCap} disabled={running} inputMode="numeric" placeholder={t('optional')} onChange={(event) => setRsvCap(event.target.value.replace(/\D/g, ''))} /></label><label>{t('keyPatch')}<input value={keyPatch} disabled={running} inputMode="numeric" placeholder={t('optional')} onChange={(event) => setKeyPatch(event.target.value.replace(/\D/g, ''))} /></label></div></details>
         </section>
 
@@ -509,7 +615,7 @@ export default function App() {
         </section>
 
         <footer className={`build-footer ${runStatus}`}>
-            <div className="progress-copy"><strong>{phase || t('ready')}</strong><span>{interpolate(t('elapsed'), { time: formatDuration(elapsed) })} · {eta == null ? t('etaUnknown') : interpolate(t('eta'), { time: formatDuration(eta) })}</span>{resultPath && <code title={resultPath}>{resultPath}</code>}</div>
+            <div className="progress-copy"><strong>{phase || t('ready')}</strong><span>{interpolate(t('elapsed'), { time: formatDuration(elapsed) })} · {backendEta == null ? t('etaUnknown') : interpolate(t('eta'), { time: formatDuration(backendEta) })}{backendSpeed ? ` · ${backendSpeed}` : ''}</span>{resultPath && <code title={resultPath}>{resultPath}</code>}</div>
             <div className="progress-track"><div style={{ width: `${Math.max(0, Math.min(100, progress))}%` }} /></div>
             <span className="progress-value">{Math.round(progress)}%</span>
             {running ? <button className="button danger" onClick={cancelBuild}><Icon name="stop" />{t('cancel')}</button> : <><button className="button secondary" disabled={!outputDir} onClick={() => api.revealPath(outputDir)}>{t('openOutput')}</button><button className="button primary large" disabled={!canBuild} onClick={startBuild}><Icon name="play" />{t('build')}</button></>}

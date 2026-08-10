@@ -8,7 +8,9 @@ need key contents in issue reports.
 
 The application stores an imported `prod.keys` locally in its Application
 Support directory. Remove it from **Settings → Encryption keys** when it is no
-longer needed. NSIC masks the key path in its visible command log.
+longer needed. NSIC masks the key path in its visible command log. The patch
+pipeline creates a restricted temporary keyset and removes it on both success
+and failure; an error workspace retains extracted game data but not that keyset.
 
 ## Reporting a vulnerability
 
@@ -22,4 +24,6 @@ arbitrary command execution or unsafe backend replacement.
 `nscb_rust` is a separate executable controlled by its upstream author. NSIC
 restricts in-app downloads to that project's GitHub Releases, but currently has
 no pinned checksum or signature. Users who require a stronger trust model should
-build and inspect the backend themselves, then use manual import.
+build and inspect the backend themselves, then use manual import. `hactool`
+and `hacPack` are also user-selected executables and receive access to keys,
+source packages, and the selected temporary directory.
