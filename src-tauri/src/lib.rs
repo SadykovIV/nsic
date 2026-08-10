@@ -1,3 +1,8 @@
+mod patch_dlc;
+
+use patch_dlc::{
+    get_patch_tool_status, import_patch_tool, inspect_patch_directory, run_patch_build,
+};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Read};
@@ -5,6 +10,7 @@ use std::io::{BufRead, BufReader, Read};
 use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::UNIX_EPOCH;
 use tauri::{Emitter, Manager};
@@ -50,6 +56,11 @@ fn nscb_exe_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 fn running_pid() -> &'static Mutex<Option<u32>> {
     static PID: OnceLock<Mutex<Option<u32>>> = OnceLock::new();
     PID.get_or_init(|| Mutex::new(None))
+}
+
+fn cancellation_requested() -> &'static AtomicBool {
+    static CANCELLED: AtomicBool = AtomicBool::new(false);
+    &CANCELLED
 }
 
 #[derive(Serialize, Clone)]
@@ -330,6 +341,7 @@ fn download_backend(app: tauri::AppHandle, url: String) -> Result<(), String> {
 
 #[tauri::command]
 fn run_nscb(app: tauri::AppHandle, operation: String, args: Vec<String>) -> Result<(), String> {
+    cancellation_requested().store(false, Ordering::SeqCst);
     let mut pid = running_pid()
         .lock()
         .map_err(|_| "Failed to lock backend state".to_string())?;
@@ -342,6 +354,7 @@ fn run_nscb(app: tauri::AppHandle, operation: String, args: Vec<String>) -> Resu
     let mut command = Command::new(executable);
     command
         .args(args)
+        .env("NSCB_FORCE_PROGRESS", "1")
         .current_dir(work_directory)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -437,6 +450,7 @@ fn run_nscb(app: tauri::AppHandle, operation: String, args: Vec<String>) -> Resu
 
 #[tauri::command]
 fn cancel_nscb() -> Result<(), String> {
+    cancellation_requested().store(true, Ordering::SeqCst);
     let active_pid = running_pid()
         .lock()
         .map_err(|_| "Failed to lock backend state".to_string())?
@@ -565,6 +579,10 @@ pub fn run() {
             get_setting,
             save_setting,
             get_backend_version,
+            get_patch_tool_status,
+            import_patch_tool,
+            inspect_patch_directory,
+            run_patch_build,
             save_backend_version,
             create_verify_filelist,
             read_file_text

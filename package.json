@@ -1,6 +1,6 @@
 {
   "name": "nintendo-switch-image-converter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "macOS ARM64 desktop app for building verified XCI images",
   "private": true,
   "type": "module",

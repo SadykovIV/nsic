@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 
 export interface RunnerEvents {
-    progress: { op: string; percent: number; message: string };
+    progress: { op: string; percent: number; message: string; etaSeconds: number | null; speed: string | null };
     output: { op: string; line: string };
     done: { op: string; code: number };
     error: { op: string; message: string };
@@ -40,6 +40,76 @@ export interface VerifyOptions {
     tempDir?: string;
 }
 
+export interface PatchBuildRequest {
+    titleId: string;
+    basePath: string;
+    updatePath: string | null;
+    dlcPaths: string[];
+    carrierDlcPath: string;
+    patchPath: string;
+    outputDir: string;
+    tempDir: string | null;
+    nodelta: boolean;
+    showFirmware: boolean;
+    rsvcap: string | null;
+    keypatch: string | null;
+}
+
+export interface ParsedProgress {
+    percent: number;
+    message: string;
+    etaSeconds: number | null;
+    speed: string | null;
+}
+
+const UNIT_BYTES: Record<string, number> = {
+    B: 1, KIB: 1024, MIB: 1024 ** 2, GIB: 1024 ** 3, TIB: 1024 ** 4,
+    KB: 1000, MB: 1000 ** 2, GB: 1000 ** 3, TB: 1000 ** 4,
+};
+
+function parseEtaSeconds(value: string | undefined): number | null {
+    if (!value) return null;
+    const match = value.trim().match(/^(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:(\d+)s)?$/i);
+    if (!match || !match[0]) return null;
+    return Number(match[1] ?? 0) * 3600 + Number(match[2] ?? 0) * 60 + Number(match[3] ?? 0);
+}
+
+function progressLabel(line: string): string {
+    return line.split('[')[0]?.trim() || line;
+}
+
+export function parseProgressLine(line: string): ParsedProgress | null {
+    const custom = line.match(/^NSIC_PROGRESS\s+(\d+(?:\.\d+)?)\s*\|\s*(.+)$/);
+    if (custom) return { percent: Math.min(99, Number(custom[1])), message: custom[2].trim(), etaSeconds: null, speed: null };
+
+    const details = line.match(/\(([^,()]+\/s),\s*([^)]+)\)/);
+    const bytes = Array.from(line.matchAll(/(\d+(?:\.\d+)?)\s*(B|KiB|MiB|GiB|TiB|KB|MB|GB|TB)\s*\/\s*(\d+(?:\.\d+)?)\s*(B|KiB|MiB|GiB|TiB|KB|MB|GB|TB)/gi)).pop();
+    if (bytes) {
+        const current = Number(bytes[1]) * UNIT_BYTES[bytes[2].toUpperCase()];
+        const total = Number(bytes[3]) * UNIT_BYTES[bytes[4].toUpperCase()];
+        if (Number.isFinite(current) && total > 0) {
+            return {
+                percent: Math.min(/\bDone\b/i.test(line) ? 100 : 99, current / total * 100),
+                message: progressLabel(line),
+                etaSeconds: parseEtaSeconds(details?.[2]),
+                speed: details?.[1]?.trim() ?? null,
+            };
+        }
+    }
+
+    const percent = Array.from(line.matchAll(/(\d+(?:\.\d+)?)\s*%/g)).pop();
+    if (percent) return { percent: Math.min(99, Number(percent[1])), message: progressLabel(line), etaSeconds: parseEtaSeconds(details?.[2]), speed: details?.[1]?.trim() ?? null };
+
+    const items = Array.from(line.matchAll(/(?:^|\s)(\d+)\s*\/\s*(\d+)(?:\s|$)/g)).pop();
+    if (items && Number(items[2]) > 0) return { percent: Math.min(99, Number(items[1]) / Number(items[2]) * 100), message: progressLabel(line), etaSeconds: null, speed: null };
+    return null;
+}
+
+export function parseResultLine(line: string): string | null {
+    const match = line.match(/^NSIC_RESULT:\s*(.+)$/);
+    return match?.[1]?.trim() || null;
+}
+
 export function dirname(path: string): string {
     const value = path.replace(/\\/g, '/');
     const index = value.lastIndexOf('/');
@@ -50,12 +120,7 @@ export function basename(path: string): string {
     return path.replace(/\\/g, '/').split('/').pop() ?? path;
 }
 
-export function buildArgs(
-    operation: 'merge' | 'verify',
-    files: string[],
-    options: MergeOptions | VerifyOptions = {},
-    keysPath: string | null = null,
-): string[] {
+export function buildArgs(operation: 'merge' | 'verify', files: string[], options: MergeOptions | VerifyOptions = {}, keysPath: string | null = null): string[] {
     const args: string[] = [];
     if (operation === 'merge') {
         const merge = options as MergeOptions;
@@ -88,29 +153,16 @@ export class NscbRunner extends Emitter {
     private active = false;
     private cancelled = false;
     private lastLine = '';
+    private patchProgressFloor = 0;
+    private resultPath: string | null = null;
     currentOperation: string | null = null;
 
     async init(): Promise<void> {
         if (this.initialized) return;
         if (this.initializing) return this.initializing;
         this.initializing = (async () => {
-            this.unlisteners.push(await listen<StdoutPayload>('nscb-stdout', (event) => {
-                const clean = this.normalize(event.payload.line);
-                if (clean) {
-                    this.lastLine = clean;
-                    this.emit('output', { op: event.payload.op, line: clean });
-                    this.parseProgress(event.payload.op, clean);
-                }
-            }));
-            this.unlisteners.push(await listen<StderrPayload>('nscb-stderr', (event) => {
-                const clean = this.normalize(event.payload.chunk);
-                if (clean) {
-                    this.lastLine = clean;
-                    this.emit('output', { op: event.payload.op, line: clean });
-                    this.parseProgress(event.payload.op, clean);
-                    if (/\berror\b/i.test(clean)) this.emit('error', { op: event.payload.op, message: clean });
-                }
-            }));
+            this.unlisteners.push(await listen<StdoutPayload>('nscb-stdout', (event) => this.consume(event.payload.op, event.payload.line, false)));
+            this.unlisteners.push(await listen<StderrPayload>('nscb-stderr', (event) => this.consume(event.payload.op, event.payload.chunk, true)));
             this.unlisteners.push(await listen<DonePayload>('nscb-done', (event) => {
                 if (event.payload.op !== this.currentOperation) return;
                 this.active = false;
@@ -125,26 +177,24 @@ export class NscbRunner extends Emitter {
     }
 
     private normalize(value: string): string {
-        return value
-            .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
-            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
+        return value.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
-    private parseProgress(op: string, line: string): void {
-        const percent = Array.from(line.matchAll(/(\d+(?:\.\d+)?)\s*%/g)).pop();
-        if (percent) {
-            this.emit('progress', { op, percent: Math.min(99, Number(percent[1])), message: line });
-            return;
-        }
-        const items = Array.from(line.matchAll(/(\d+)\s*\/\s*(\d+)/g)).pop();
-        if (items && Number(items[2]) > 0) {
-            this.emit('progress', {
-                op,
-                percent: Math.min(99, Number(items[1]) / Number(items[2]) * 100),
-                message: line,
-            });
+    private consume(op: string, raw: string, isStderr: boolean): void {
+        const frames = raw.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '\n').split(/[\r\n]+/).map((value) => this.normalize(value)).filter(Boolean);
+        for (const clean of frames) {
+            this.lastLine = clean;
+            if (op === 'patch') this.resultPath = parseResultLine(clean) ?? this.resultPath;
+            const parsed = parseProgressLine(clean);
+            if (parsed) {
+                if (op === 'patch' && clean.startsWith('NSIC_PROGRESS')) {
+                    this.patchProgressFloor = parsed.percent;
+                } else if (op === 'patch' && this.patchProgressFloor > 0) {
+                    parsed.percent = Math.min(99, this.patchProgressFloor + parsed.percent * (100 - this.patchProgressFloor) / 100);
+                }
+                this.emit('progress', { op, ...parsed });
+            } else this.emit('output', { op, line: clean });
+            if (isStderr && /(?:^|\s)(?:error|failed)(?::|\s)/i.test(clean)) this.emit('error', { op, message: clean });
         }
     }
 
@@ -152,18 +202,15 @@ export class NscbRunner extends Emitter {
         try {
             const tools = await invoke<string>('get_tools_dir');
             return `${tools.replace(/\/$/, '')}/prod.keys`;
-        } catch {
-            return null;
-        }
+        } catch { return null; }
     }
 
     private async start(operation: string, args: string[]): Promise<number> {
         return new Promise<number>(async (resolve) => {
             this.doneResolver = resolve;
             this.active = true;
-            try {
-                await invoke('run_nscb', { operation, args });
-            } catch (error) {
+            try { await invoke('run_nscb', { operation, args }); }
+            catch (error) {
                 this.active = false;
                 this.doneResolver = null;
                 this.emit('error', { op: operation, message: String(error) });
@@ -172,11 +219,22 @@ export class NscbRunner extends Emitter {
         });
     }
 
+    private async startPatch(request: PatchBuildRequest): Promise<number> {
+        return new Promise<number>(async (resolve) => {
+            this.doneResolver = resolve;
+            this.active = true;
+            try { await invoke('run_patch_build', { request }); }
+            catch (error) {
+                this.active = false;
+                this.doneResolver = null;
+                this.emit('error', { op: 'patch', message: String(error) });
+                resolve(-1);
+            }
+        });
+    }
+
     async run(operation: 'merge' | 'verify', files: string[], options: MergeOptions | VerifyOptions = {}): Promise<number> {
-        if (this.active) {
-            this.emit('error', { op: operation, message: 'Another operation is already running' });
-            return -1;
-        }
+        if (this.active) return -1;
         await this.init();
         this.currentOperation = operation;
         this.cancelled = false;
@@ -201,9 +259,7 @@ export class NscbRunner extends Emitter {
             try {
                 const report = await invoke<string>('read_file_text', { path: verificationReport });
                 report.split(/\r?\n/).filter(Boolean).forEach((line) => this.emit('output', { op: operation, line }));
-            } catch {
-                // The backend may stop before producing a verification report.
-            }
+            } catch { /* Backend may stop before producing a report. */ }
         }
 
         this.currentOperation = null;
@@ -211,15 +267,30 @@ export class NscbRunner extends Emitter {
             this.emit('done', { op: operation, code: 130 });
             return 130;
         }
-        if (code === 0) {
-            this.emit('progress', { op: operation, percent: 100, message: 'Done' });
-        } else {
-            this.emit('error', {
-                op: operation,
-                message: this.lastLine ? `nscb_rust exited with code ${code}: ${this.lastLine}` : `nscb_rust exited with code ${code}`,
-            });
-        }
+        if (code === 0) this.emit('progress', { op: operation, percent: 100, message: 'Done', etaSeconds: 0, speed: null });
+        else this.emit('error', { op: operation, message: this.lastLine ? `nscb_rust exited with code ${code}: ${this.lastLine}` : `nscb_rust exited with code ${code}` });
         this.emit('done', { op: operation, code });
+        return code;
+    }
+
+    async runPatch(request: PatchBuildRequest): Promise<number> {
+        if (this.active) return -1;
+        await this.init();
+        this.currentOperation = 'patch';
+        this.cancelled = false;
+        this.lastLine = '';
+        this.patchProgressFloor = 0;
+        this.resultPath = null;
+        this.emit('output', { op: 'patch', line: `Patch: ${request.patchPath}` });
+        const code = await this.startPatch(request);
+        this.currentOperation = null;
+        if (this.cancelled) {
+            this.emit('done', { op: 'patch', code: 130 });
+            return 130;
+        }
+        if (code === 0) this.emit('progress', { op: 'patch', percent: 100, message: 'Done', etaSeconds: 0, speed: null });
+        else this.emit('error', { op: 'patch', message: this.lastLine || `Patch build exited with code ${code}` });
+        this.emit('done', { op: 'patch', code });
         return code;
     }
 
@@ -233,14 +304,9 @@ export class NscbRunner extends Emitter {
         resolve?.(130);
     }
 
-    isRunning(): boolean {
-        return this.active;
-    }
+    isRunning(): boolean { return this.active; }
+    getResultPath(): string | null { return this.resultPath; }
 }
 
 let runner: NscbRunner | null = null;
-
-export function getRunner(): NscbRunner {
-    runner ??= new NscbRunner();
-    return runner;
-}
+export function getRunner(): NscbRunner { runner ??= new NscbRunner(); return runner; }

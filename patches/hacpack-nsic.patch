@@ -1,0 +1,28 @@
+diff --git a/main.c b/main.c
+index 1538382..45bcbbe 100644
+--- a/main.c
++++ b/main.c
+@@ -239,6 +239,5 @@ int main(int argc, char **argv)
+             // Validating SDK Version
+-            if (settings.sdk_version < 0x000B0000 || settings.sdk_version > 0x00FFFFFF)
++            if (settings.sdk_version == 0)
+             {
+-                fprintf(stderr, "Error: Invalid SDK version: %08" PRIX32 "\n"
+-                                "Valid SDK version range: 000B0000 - 00FFFFFF\n",
++                fprintf(stderr, "Error: Invalid SDK version: %08" PRIX32 "\n",
+                         settings.sdk_version);
+diff --git a/nca.c b/nca.c
+index 6d5e22f..e787f89 100644
+--- a/nca.c
++++ b/nca.c
+@@ -636,5 +636,8 @@ void nca_encrypt_section(FILE *nca_file, nca_header_t *nca_header, uint8_t section_index)
+ void nca_encrypt_section(FILE *nca_file, nca_header_t *nca_header, uint8_t section_index)
+ {
+-    uint64_t start_offset = nca_header->section_entries[section_index].media_start_offset * 0x200;
+-    uint64_t end_offset = nca_header->section_entries[section_index].media_end_offset * 0x200;
++    /* Promote before multiplying. NCA media offsets are 32-bit units of 0x200
++       bytes, so multiplying in 32-bit arithmetic truncates sections above
++       4 GiB and leaves the remaining data unencrypted. */
++    uint64_t start_offset = (uint64_t)nca_header->section_entries[section_index].media_start_offset * 0x200ULL;
++    uint64_t end_offset = (uint64_t)nca_header->section_entries[section_index].media_end_offset * 0x200ULL;
+     uint64_t filesize = end_offset - start_offset;
