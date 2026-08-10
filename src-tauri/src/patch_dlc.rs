@@ -933,36 +933,36 @@ fn find_single_nca(root: &Path, cnmt: bool) -> Result<PathBuf, String> {
     })
 }
 
-fn hacpack_base(
-    hacpack: &Path,
-    keys: &Path,
-    output: &Path,
-    temp: &Path,
-    nca_type: &str,
-    title_id: &str,
+struct HacpackNcaArgs<'a> {
+    output: &'a Path,
+    temp: &'a Path,
+    nca_type: &'a str,
+    title_id: &'a str,
     key_generation: u8,
-    sdk_version: &str,
-) -> Command {
+    sdk_version: &'a str,
+}
+
+fn hacpack_base(hacpack: &Path, keys: &Path, args: HacpackNcaArgs<'_>) -> Command {
     let mut command = Command::new(hacpack);
     command
         .args(["-k"])
         .arg(keys)
         .args(["-o"])
-        .arg(output)
+        .arg(args.output)
         .args(["--tempdir"])
-        .arg(temp)
+        .arg(args.temp)
         .args([
             "--type",
             "nca",
             "--ncatype",
-            nca_type,
+            args.nca_type,
             "--titleid",
-            title_id,
+            args.title_id,
             "--keygeneration",
         ])
-        .arg(key_generation.max(1).to_string())
+        .arg(args.key_generation.max(1).to_string())
         .arg("--sdkversion")
-        .arg(sdk_version);
+        .arg(args.sdk_version);
     command
 }
 
@@ -1164,12 +1164,14 @@ fn pipeline_with_tools<R: Runtime>(
     let mut data_command = hacpack_base(
         hacpack,
         &keys,
-        &final_ncas,
-        &work.join("publicdata-temp"),
-        "publicdata",
-        &carrier_title_id,
-        carrier_info.key_generation,
-        data_sdk,
+        HacpackNcaArgs {
+            output: &final_ncas,
+            temp: &work.join("publicdata-temp"),
+            nca_type: "publicdata",
+            title_id: &carrier_title_id,
+            key_generation: carrier_info.key_generation,
+            sdk_version: data_sdk,
+        },
     );
     data_command.args(["--romfsdir"]).arg(&carrier_romfs);
     run_command(data_command, "hacPack PublicData NCA build", false)?;
@@ -1193,12 +1195,14 @@ fn pipeline_with_tools<R: Runtime>(
     let mut meta_command = hacpack_base(
         hacpack,
         &keys,
-        &final_ncas,
-        &work.join("meta-temp"),
-        "meta",
-        &carrier_title_id,
-        carrier_info.key_generation,
-        meta_sdk,
+        HacpackNcaArgs {
+            output: &final_ncas,
+            temp: &work.join("meta-temp"),
+            nca_type: "meta",
+            title_id: &carrier_title_id,
+            key_generation: carrier_info.key_generation,
+            sdk_version: meta_sdk,
+        },
     );
     meta_command
         .args(["--titletype", "addon", "--publicdatanca"])
